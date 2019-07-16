@@ -1,0 +1,85 @@
+
+
+
+def tika(files):
+    url = 'https://ecms-cis-tika.edap-cluster.com/tika/form'
+    headers = {'Cache-Control': 'no-cache'}
+    t1 = time.time()
+    r = requests.post(url, files=files, headers = headers)
+    t2 = time.time()
+    return(r, t1-t2)
+
+
+
+def xtika(files):
+    url = 'https://ecms-cis-tika.edap-cluster.com/tika/form'
+    headers1 = {'Content-Type' : 'application/pdf', 'X-Tika-PDFOcrStrategy': 'ocr_only', 'Cache-Control': 'no-cache'}
+    t1 = time.time()
+    r = requests.post(url, files=files, headers = headers1)
+    t2 = time.time()
+    return(r, t1-t2)
+
+
+def nlpbuddy(text):
+    global snltime
+    global fnltime
+    url = 'https://ecms-cis-nlpbuddy.edap-cluster.com/api/analyze'
+    headers = {'Content-Type' : 'application/json'}
+    data = {'text': text}
+    t1 = time.time()
+    r = requests.post(url, json=data)
+    t2 = time.time()
+    return(r, t1-t2)
+
+def klassify(text):
+    global sktime
+    global fktime
+    url = 'https://ecms-cis-klassify.edap-cluster.com/classify'
+    data = {"text": text}
+    t1 = time.time()
+    r = requests.post(url, json=data)
+    t2 = time.time()
+    return(r, t1-t2)
+   
+    
+#copy to update_button
+#from tkinter import filedialog
+#from tkinter import *
+#from collections import Counter
+
+root.filename = filedialog.askopenfilename(parent=root,initialdir="/",title='Please select a file to scan')
+fin = open(root.filename, 'rb')
+files = {'files':fin}
+mimetype = mimetypes.MimeTypes().guess_type(root.filename)[0]
+
+speak(service type, time): #case statement
+
+extract,tikatime = tika(files)
+if len(rq.text.strip())==0 and (mimetype == 'application/pdf'):
+        fin.seek(0) # Move to the beginning of document
+        extract,tikatime = xtika(files)
+        
+summarytext,summarytime = nlpbuddy(extract.text)
+
+a = summarytext.json()    
+b = klassify(a['summary'])
+c = b.json()
+slabel = str(c['label']) #record schedule
+
+#build schedule rest query definition here
+
+d = Counter(c['scores'])
+e = []
+for k,v in d.most_common(3):
+        for label, desc in dict.items():
+            if label == k:
+                print('%s - %s: %i' % (label, desc, v))        
+                
+                
+print("Here's the summary: ")
+    print(a['summary'][:400])                
+                
+print("Here are some keywords: ")
+    print(a['keywords'][:400])                
+                
+                
